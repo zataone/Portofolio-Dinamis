@@ -1,61 +1,388 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sistem Autentikasi Laravel Lengkap
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Fitur yang Tersedia
 
-## About Laravel
+-   Login
+-   Register
+-   Lupa Password / Reset Password
+-   Verifikasi Email
+-   Remember Me
+-   Role dan Permission Management
+-   Session Management
+-   Login History
+-   Profile Management
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Instalasi Package yang Dibutuhkan
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+```bash / terminal
+composer require spatie/laravel-permission
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 1. Konfigurasi Database dan Email
 
-## Learning Laravel
+```env
+# Database
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=nama_database
+DB_USERNAME=root
+DB_PASSWORD=
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# Email (Mailtrap)
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_username
+MAIL_PASSWORD=your_password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="noreply@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 2. Model dan Migration
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### User Model
 
-## Laravel Sponsors
+```php
+// filepath: app/Models/User.php
+namespace App\Models;
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
-### Premium Partners
+class User extends Authenticatable implements MustVerifyEmail
+{
+    use Notifiable, HasRoles;
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'last_login_at',
+        'last_login_ip',
+    ];
 
-## Contributing
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+}
+```
 
-## Code of Conduct
+### Login History Migration
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```php
+// filepath: database/migrations/create_login_histories_table.php
+public function up()
+{
+    Schema::create('login_histories', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('user_id')->constrained();
+        $table->string('ip_address');
+        $table->string('user_agent');
+        $table->timestamp('login_at');
+        $table->timestamps();
+    });
+}
+```
 
-## Security Vulnerabilities
+## 3. Controllers
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Login Controller
 
-## License
+```php
+// filepath: app/Http/Controllers/Auth/LoginController.php
+namespace App\Http\Controllers\Auth;
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\LoginHistory;
+use Illuminate\Support\Facades\Auth;
+
+class LoginController extends Controller
+{
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
+
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
+            $this->recordLoginHistory($request);
+            $request->session()->regenerate();
+            return redirect()->intended('dashboard');
+        }
+
+        return back()->withErrors([
+            'email' => 'Kredensial tidak valid.',
+        ]);
+    }
+
+    private function recordLoginHistory(Request $request)
+    {
+        LoginHistory::create([
+            'user_id' => Auth::id(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'login_at' => now(),
+        ]);
+
+        Auth::user()->update([
+            'last_login_at' => now(),
+            'last_login_ip' => $request->ip()
+        ]);
+    }
+}
+```
+
+### Reset Password Controller
+
+```php
+// filepath: app/Http/Controllers/Auth/ForgotPasswordController.php
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
+
+class ForgotPasswordController extends Controller
+{
+    public function showLinkRequestForm()
+    {
+        return view('auth.passwords.email');
+    }
+
+    public function sendResetLinkEmail(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with(['status' => __($status)])
+            : back()->withErrors(['email' => __($status)]);
+    }
+}
+```
+
+### Profile Controller
+
+```php
+// filepath: app/Http/Controllers/ProfileController.php
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+
+class ProfileController extends Controller
+{
+    public function edit()
+    {
+        return view('profile.edit', [
+            'user' => auth()->user()
+        ]);
+    }
+
+    public function update(Request $request)
+    {
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$user->id,
+            'current_password' => 'required_with:password|current_password',
+            'password' => 'nullable|min:8|confirmed',
+        ]);
+
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+
+        if (isset($validated['password'])) {
+            $user->update([
+                'password' => Hash::make($validated['password'])
+            ]);
+        }
+
+        return back()->with('status', 'Profile updated successfully');
+    }
+}
+```
+
+## 4. Views
+
+### Login Form
+
+```php
+// filepath: resources/views/auth/login.blade.php
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">{{ __('Login') }}</div>
+
+                <div class="card-body">
+                    <form method="POST" action="{{ route('login') }}">
+                        @csrf
+
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" name="remember" id="remember">
+                                <label for="remember">Remember Me</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Login</button>
+
+                        <a href="{{ route('password.request') }}">
+                            Forgot Password?
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+```
+
+## 5. Routes
+
+```php
+// filepath: routes/web.php
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\ProfileController;
+
+// Authentication Routes
+Route::middleware('guest')->group(function () {
+    Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('login', [LoginController::class, 'login']);
+    Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])
+        ->name('password.request');
+    Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])
+        ->name('password.email');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+    Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+});
+```
+
+## 6. Testing
+
+```php
+// filepath: tests/Feature/Auth/AuthenticationTest.php
+namespace Tests\Feature\Auth;
+
+use App\Models\User;
+use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+class AuthenticationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_user_can_login_with_correct_credentials()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password'
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect('/dashboard');
+    }
+
+    public function test_user_cannot_login_with_invalid_password()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'wrong-password'
+        ]);
+
+        $this->assertGuest();
+    }
+}
+```
+
+## Penggunaan
+
+### Mengecek Status Login
+
+```php
+@auth
+    // User sudah login
+@endauth
+
+@guest
+    // User belum login
+@endguest
+```
+
+### Mengamankan Route
+
+```php
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Routes yang membutuhkan autentikasi
+});
+```
+
+## Keamanan
+
+1. Rate Limiting untuk Login
+
+```php
+// filepath: app/Providers/RouteServiceProvider.php
+RateLimiter::for('login', function (Request $request) {
+    return Limit::perMinute(5)->by($request->ip());
+});
+```
+
+2. Validasi Password
+
+```php
+// filepath: app/Rules/Password.php
+Password::defaults(function () {
+    return Password::min(8)
+        ->letters()
+        ->mixedCase()
+        ->numbers()
+        ->uncompromised();
+});
+```
