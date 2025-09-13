@@ -9,7 +9,6 @@
 -   Remember Me
 -   Role dan Permission Management
 -   Session Management
--   Login History
 -   Profile Management
 
 ## Instalasi Package yang Dibutuhkan
@@ -60,8 +59,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'last_login_at',
-        'last_login_ip',
     ];
 
     protected $hidden = [
@@ -76,23 +73,6 @@ class User extends Authenticatable implements MustVerifyEmail
 }
 ```
 
-### Login History Migration
-
-```php
-// filepath: database/migrations/create_login_histories_table.php
-public function up()
-{
-    Schema::create('login_histories', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('user_id')->constrained();
-        $table->string('ip_address');
-        $table->string('user_agent');
-        $table->timestamp('login_at');
-        $table->timestamps();
-    });
-}
-```
-
 ## 3. Controllers
 
 ### Login Controller
@@ -103,7 +83,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\LoginHistory;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
@@ -121,7 +100,9 @@ class LoginController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
-            $this->recordLoginHistory($request);
+            // Simpan info login terakhir di session
+            $request->session()->put('last_login_at', now());
+            $request->session()->put('last_login_ip', $request->ip());
             $request->session()->regenerate();
             return redirect()->intended('dashboard');
         }
@@ -130,23 +111,39 @@ class LoginController extends Controller
             'email' => 'Kredensial tidak valid.',
         ]);
     }
-
-    private function recordLoginHistory(Request $request)
-    {
-        LoginHistory::create([
-            'user_id' => Auth::id(),
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'login_at' => now(),
-        ]);
-
-        Auth::user()->update([
-            'last_login_at' => now(),
-            'last_login_ip' => $request->ip()
-        ]);
-    }
 }
 ```
+
+## 7. Custom Error Pages
+
+Untuk menampilkan halaman error yang lebih baik, buat folder `resources/views/errors` dan tambahkan file berikut:
+
+-   `404.blade.php` — Not Found
+-   `419.blade.php` — Page Expired
+-   `403.blade.php` — Forbidden
+-   `500.blade.php` — Server Error
+-   `503.blade.php` — Maintenance Mode
+
+Contoh isi file `404.blade.php`:
+
+```php
+@extends('layouts.app')
+
+@section('content')
+<div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-6 text-center">
+        <h1 class="display-1 fw-bold text-primary mb-4">404</h1>
+        <h2 class="h3 mb-4">Page Not Found</h2>
+        <p class="text-muted mb-5">Sorry, we couldn't find the page you're looking for.</p>
+        <a href="{{ url('/') }}" class="btn btn-primary px-4">
+            Back to Home
+        </a>
+    </div>
+</div>
+@endsection
+```
+
+Laravel akan otomatis menggunakan file-file ini jika terjadi error terkait.
 
 ### Reset Password Controller
 
@@ -343,11 +340,12 @@ class AuthenticationTest extends TestCase
 
 ## Penggunaan
 
-### Mengecek Status Login
+### Mengecek Status Login & Info Login Terakhir
 
 ```php
 @auth
     // User sudah login
+    Terakhir login: {{ session('last_login_at') }} dari IP {{ session('last_login_ip') }}
 @endauth
 
 @guest
