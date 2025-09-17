@@ -11,7 +11,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('landingpage.index');
 });
 
 // Guest Routes
@@ -34,6 +34,11 @@ Route::middleware('guest')->group(function () {
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+    
+    // Dashboard Route
+    Route::get('dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
     
     // Profile Routes
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');

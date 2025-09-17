@@ -1,54 +1,49 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="row justify-content-center align-items-center min-vh-100">
-    <div class="col-md-6 col-lg-5">
-        <div class="mb-4">
-            <h2 class="fw-bold text-dark mb-2" style="font-size: 32px;">Forgot Password?</h2>
-            <p class="text-muted mb-0" style="font-size: 15px;">Enter your email to reset your password</p>
-        </div>
-        <div class="card" style="overflow: hidden;">
-            <div class="card-body p-4 p-lg-5" style="position: relative;">
-                <div class="position-absolute top-0 start-0 w-100 h-2" style="background: linear-gradient(90deg, #4f46e5, #6366f1);"></div>
-                @if (session('status'))
-                    <div class="alert alert-success" role="alert">
-                        {{ session('status') }}
-                    </div>
-                @endif
+<section class="py-12 bg-white sm:py-16 lg:py-20">
+    <div class="px-4 mx-auto sm:px-6 lg:px-8 max-w-7xl">
+        <div class="max-w-sm mx-auto">
+            <div class="text-center">
+                <img class="w-auto h-12 mx-auto" src="https://landingfoliocom.imgix.net/store/collection/clarity-dashboard/images/logo-symbol.svg" alt="" />
+                <h1 class="mt-12 text-2xl font-bold text-gray-900">Reset Password</h1>
+                <p class="mt-4 text-sm font-medium text-gray-500">Enter your email to receive reset link</p>
+            </div>
 
-                <form method="POST" action="{{ route('password.email') }}">
-                    @csrf
+            @if (session('status'))
+                <div class="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p class="text-sm text-green-600">{{ session('status') }}</p>
+                </div>
+            @endif
 
-                    <div class="mb-4">
-                        <label for="email" class="form-label">{{ __('Email Address') }}</label>
-                        <div class="input-group">
-                            <span class="input-group-text border-0 bg-light">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope" viewBox="0 0 16 16">
-                                    <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2zm13 2.383-4.708 2.825L15 11.105V5.383zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741zM1 11.105l4.708-2.897L1 5.383v5.722z"/>
-                                </svg>
-                            </span>
-                            <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="Enter your email">
+            <form method="POST" action="{{ route('password.email') }}" class="mt-8">
+                @csrf
+                <div class="space-y-4">
+                    <div>
+                        <label for="email" class="text-sm font-bold text-gray-900">Email</label>
+                        <div class="mt-2">
+                            <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="Email address" class="border block w-full px-4 py-3 placeholder-gray-500 @error('email') border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm caret-indigo-600" />
+                            @error('email')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
-                        @error('email')
-                            <div class="invalid-feedback d-block mt-1">
-                                {{ $message }}
-                            </div>
-                        @enderror
                     </div>
 
-                    <div class="mb-0">
-                        <button type="submit" class="btn btn-primary w-100 mb-3">
-                            {{ __('Send Reset Link') }}
+                    <div>
+                        <button
+                            type="submit"
+                            class="inline-flex items-center justify-center w-full px-6 py-3 text-sm font-semibold leading-5 text-white transition-all duration-200 bg-indigo-600 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 hover:bg-indigo-500"
+                        >
+                            Send Reset Link
                         </button>
-                        
-                        <p class="text-center mb-0">
-                            Remember your password? 
-                            <a href="{{ route('login') }}" class="btn btn-link p-0">Back to login</a>
-                        </p>
                     </div>
-                </form>
+                </div>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm font-medium text-gray-900">Remember your password? <a href="{{ route('login') }}" class="font-bold hover:underline">Back to login</a></p>
             </div>
         </div>
     </div>
-</div>
+</section>
 @endsection
