@@ -36,7 +36,7 @@
                     <div>
                         <label for="name" class="text-sm font-bold text-gray-900">Name</label>
                         <div class="mt-2">
-                            <input id="name" type="text" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus placeholder="Full name" class="border block w-full px-4 py-3 placeholder-gray-500 @error('name') border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm caret-indigo-600" />
+                            <input id="name" type="text" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus placeholder="Full name" class="border block w-full px-4 py-3 placeholder-gray-500 rounded-lg sm:text-sm caret-indigo-600 {{ $errors->has('name') ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-600 focus:border-indigo-600' }}" />
                             @error('name')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -46,7 +46,7 @@
                     <div>
                         <label for="email" class="text-sm font-bold text-gray-900">Email</label>
                         <div class="mt-2">
-                            <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="email" placeholder="Email address" class="border block w-full px-4 py-3 placeholder-gray-500 @error('email') border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm caret-indigo-600" />
+                            <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="email" placeholder="Email address" class="border block w-full px-4 py-3 placeholder-gray-500 rounded-lg sm:text-sm caret-indigo-600 {{ $errors->has('email') ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-600 focus:border-indigo-600' }}" />
                             @error('email')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -56,7 +56,7 @@
                     <div>
                         <label for="password" class="text-sm font-bold text-gray-900">Password</label>
                         <div class="mt-2">
-                            <input id="password" type="password" name="password" required autocomplete="new-password" placeholder="Password (min. 8 character)" class="border block w-full px-4 py-3 placeholder-gray-500 @error('password') border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm caret-indigo-600" />
+                            <input id="password" type="password" name="password" required autocomplete="new-password" placeholder="Password (min. 8 character)" class="border block w-full px-4 py-3 placeholder-gray-500 rounded-lg sm:text-sm caret-indigo-600 {{ $errors->has('password') ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-600 focus:border-indigo-600' }}" />
                             @error('password')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror

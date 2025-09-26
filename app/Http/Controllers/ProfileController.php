@@ -4,24 +4,21 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class ProfileController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['auth', 'verified']);
-    }
-
     public function edit()
     {
         return view('profile.edit', [
-            'user' => auth()->user()
+            'user' => Auth::user()
         ]);
     }
 
     public function update(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -30,16 +27,16 @@ class ProfileController extends Controller
             'password' => 'nullable|min:8|confirmed',
         ]);
 
-        $user->update([
+        $updateData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
-        ]);
-
+        ];
+        
         if (isset($validated['password'])) {
-            $user->update([
-                'password' => Hash::make($validated['password'])
-            ]);
+            $updateData['password'] = Hash::make($validated['password']);
         }
+        
+        User::where('id', $user->id)->update($updateData);
 
         return back()->with('status', 'Profile berhasil diperbarui');
     }

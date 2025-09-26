@@ -37,7 +37,7 @@ Route::middleware('auth')->group(function () {
     
     // Dashboard Route
     Route::get('dashboard', function () {
-        return view('dashboard');
+        return view('admin.dashboard.index');
     })->name('dashboard');
     
     // Profile Routes
