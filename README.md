@@ -17,7 +17,7 @@
 composer require spatie/laravel-permission
 ```
 
-## 1. Konfigurasi Database dan Email
+## 1. Konfigurasi Database dan Email di file .env
 
 ```env
 # Database
