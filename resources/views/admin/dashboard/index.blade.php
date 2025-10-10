@@ -153,61 +153,111 @@
         </div>
     </div>
 
-    <!-- Recent Testimonials Section -->
-    <div class="overflow-hidden bg-white border border-gray-200 rounded-xl">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="sm:flex sm:items-start sm:justify-between">
-                <div>
-                    <p class="text-base font-bold text-gray-900">Recent Testimonials</p>
-                    <p class="mt-1 text-sm font-medium text-gray-500">Latest testimonials from clients</p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Statistik Project Card -->
+        <div class="overflow-hidden bg-white border border-gray-200 rounded-xl">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <p class="text-base font-bold text-gray-900">Statistik Project</p>
+                    <span class="inline-flex items-center px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded">By Category</span>
                 </div>
-
-                <div class="mt-4 sm:mt-0">
-                    <a href="{{ route('admin.testimonials.index') }}" class="inline-flex items-center text-xs font-semibold tracking-widest text-gray-500 uppercase hover:text-gray-900">
-                        See all Testimonials
-                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </a>
+                <div class="mt-4">
+                    <canvas id="projectCategoryChart" height="180"></canvas>
                 </div>
             </div>
         </div>
-
-        <div class="divide-y divide-gray-200">
-            @forelse($data['recent_testimonials'] as $testimonial)
-            <div class="px-4 py-4 sm:px-6">
-                <div class="flex items-start space-x-4">
-                    @if($testimonial->photo)
-                    <img src="{{ asset('storage/' . $testimonial->photo) }}" alt="{{ $testimonial->brand_name }}" class="w-12 h-12 rounded-full object-cover">
-                    @else
-                    <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        <!-- Recent Testimonials Section -->
+        <div class="overflow-hidden bg-white border border-gray-200 rounded-xl">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="sm:flex sm:items-start sm:justify-between">
+                    <div>
+                        <p class="text-base font-bold text-gray-900">Recent Testimonials</p>
+                        <p class="mt-1 text-sm font-medium text-gray-500">Latest testimonials from clients</p>
+                    </div>
+                    <div class="mt-4 sm:mt-0">
+                        <a href="{{ route('admin.testimonials.index') }}" class="inline-flex items-center text-xs font-semibold tracking-widest text-gray-500 uppercase hover:text-gray-900">
+                            See all Testimonials
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="divide-y divide-gray-200">
+                @forelse($data['recent_testimonials'] as $testimonial)
+                <div class="px-4 py-4 sm:px-6">
+                    <div class="flex items-start space-x-4">
+                        @if($testimonial->photo)
+                        <img src="{{ asset('storage/' . $testimonial->photo) }}" alt="{{ $testimonial->brand_name }}" class="w-12 h-12 rounded-full object-cover">
+                        @else
+                        <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                            <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
+                        @endif
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-medium text-gray-900">{{ $testimonial->brand_name ?? 'Anonymous' }}</p>
+                                <span class="text-xs text-gray-500">{{ $testimonial->created_at->diffForHumans() }}</span>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-600 line-clamp-2">{{ Str::limit($testimonial->message, 120) }}</p>
+                        </div>
+                    </div>
+                </div>
+                @empty
+                <div class="px-4 py-8 text-center">
+                    <div class="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                         </svg>
                     </div>
-                    @endif
-                    
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between">
-                            <p class="text-sm font-medium text-gray-900">{{ $testimonial->brand_name ?? 'Anonymous' }}</p>
-                            <span class="text-xs text-gray-500">{{ $testimonial->created_at->diffForHumans() }}</span>
-                        </div>
-                        <p class="mt-1 text-sm text-gray-600 line-clamp-2">{{ Str::limit($testimonial->message, 120) }}</p>
-                    </div>
+                    <p class="text-gray-500">No testimonials yet. <a href="{{ route('admin.testimonials.create') }}" class="text-indigo-600 hover:text-indigo-800">Add your first testimonial</a></p>
                 </div>
+                @endforelse
             </div>
-            @empty
-            <div class="px-4 py-8 text-center">
-                <div class="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                    </svg>
-                </div>
-                <p class="text-gray-500">No testimonials yet. <a href="{{ route('admin.testimonials.create') }}" class="text-indigo-600 hover:text-indigo-800">Add your first testimonial</a></p>
-            </div>
-            @endforelse
         </div>
     </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('projectCategoryChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode(array_column($data['project_category_stats'], 'name')) !!},
+            datasets: [{
+                label: 'Jumlah Project',
+                data: {!! json_encode(array_column($data['project_category_stats'], 'count')) !!},
+                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                borderRadius: 6,
+                maxBarThickness: 40,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    title: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#e5e7eb' },
+                    title: { display: false }
+                }
+            }
+        }
+    });
+});
+</script>
 </div>
 @endsection
 

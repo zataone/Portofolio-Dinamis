@@ -23,52 +23,62 @@
     <!-- Projects Grid -->
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
         @if($projects->count() > 0)
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-            @foreach($projects as $project)
-            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200">
-                <!-- Project Image -->
-                <div class="aspect-w-16 aspect-h-9">
-                    @if($project->thumbnail)
-                    <img src="{{ asset('storage/' . $project->thumbnail) }}" alt="{{ $project->project_name }}" class="w-full h-48 object-cover">
-                    @else
-                    <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                    </div>
-                    @endif
-                </div>
-                
-                <!-- Project Info -->
-                <div class="p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <h3 class="text-lg font-semibold text-gray-900">{{ $project->project_name }}</h3>
-                        @if($project->category)
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                            {{ $project->category->name }}
-                        </span>
-                        @endif
-                    </div>
-                    
-                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">{{ $project->short_description }}</p>
-                    
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-500">{{ $project->created_at->format('M d, Y') }}</span>
-                        <div class="flex space-x-2">
-                            <a href="{{ route('admin.projects.show', $project) }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">View</a>
-                            <a href="{{ route('admin.projects.edit', $project) }}" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium">Edit</a>
-                            <form action="{{ route('admin.projects.destroy', $project) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this project?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium">Delete</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endforeach
+        <div class="overflow-x-auto">
+            <table class="w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12">No</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Name</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Short Description</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach($projects as $project)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-4 text-center text-sm text-gray-500 font-semibold">{{ ($projects->currentPage() - 1) * $projects->perPage() + $loop->iteration }}</td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ $project->project_name }}</div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                {{ $project->category->name ?? '-' }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4">
+                            <div class="text-sm text-gray-500 max-w-xs truncate">
+                                {{ $project->short_description ?? '-' }}
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $project->created_at ? $project->created_at->format('M d, Y') : '-' }}
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <div class="flex items-center justify-center gap-4">
+                                {{-- view action removed --}}
+                                <a href="{{ route('admin.projects.edit', $project) }}" class="text-yellow-600 hover:text-yellow-800" title="Edit">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
+                                </a>
+                                <form action="{{ route('admin.projects.destroy', $project) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this project?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-800" title="Delete">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-        
         <!-- Pagination -->
         <div class="px-6 py-4 border-t border-gray-200">
             {{ $projects->links() }}

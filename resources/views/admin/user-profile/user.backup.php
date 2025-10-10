@@ -3,13 +3,13 @@
 @section('title', 'User Profile')
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
-    <div class=" px-4 sm:px-6 lg:px-8 py-8">
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         @if($userProfile)
         <!-- Profile Header Card -->
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-8">
             <!-- Header Background -->
-            <div class="h-32 bg-cover bg-center" style="background-image: url('{{ asset('images/bg-profilone.png') }}');"></div>
+            <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 h-32"></div>
             
             <!-- Profile Content -->
             <div class="px-8 pb-8">
@@ -19,28 +19,22 @@
                         <div class="flex-shrink-0 relative">
                             @if($userProfile->photo)
                             <img src="{{ asset('storage/' . $userProfile->photo) }}" alt="{{ $userProfile->full_name }}" 
-                                 class="h-24 w-24 rounded-full object-cover border-4 border-white shadow-lg bg-white">
+                                 class="h-50 w-24 rounded-md object-cover border-4 border-white shadow-lg bg-white mt-6">
                             @else
-                            <div class="h-24 w-24 bg-white rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+                            <div class="h-50 w-24 bg-white rounded-md flex items-center justify-center border-4 border-white shadow-lg mt-6">
                                 <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                 </svg>
                             </div>
-                            @endif                            
+                            @endif
                         </div>
 
                         <!-- Profile Info -->
                         <div class="flex-1 mt-4">
                             <div class="flex items-center space-x-3 mb-2">
                                 <h1 class="text-2xl font-bold text-gray-900">{{ $userProfile->full_name }}</h1>
-                                <!-- Verified Badge -->
-                                <div class="bg-blue-500 rounded-full p-1 shadow-sm">
-                                    <svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
                             </div>
-                            <p class="text-gray-600 text-sm mb-3 mt-6">{{ auth()->user()->email }}</p>
+                            <p class="text-gray-600 text-sm mb-3">{{ auth()->user()->email }}</p>
                             
                             @if($userProfile->bio)
                             <p class="text-gray-700 text-sm leading-relaxed max-w-2xl">{{ $userProfile->bio }}</p>
@@ -65,16 +59,16 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="flex items-center space-x-2 mt-4">
+                    <div class="flex items-center space-x-3 mt-4">
                         <a href="{{ route('admin.user-profile.edit') }}" 
-                           class="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shadow-md"
+                           class="p-3 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors text-blue-600 hover:text-blue-700"
                            title="Edit Profile">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                         </a>
                         <button onclick="togglePasswordForm()" 
-                                class="p-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors shadow-md"
+                                class="p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-gray-600 hover:text-gray-700"
                                 title="Change Password">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
@@ -191,6 +185,17 @@
                                 <div>
                                     <label class="text-sm font-medium text-gray-500">Email</label>
                                     <p class="text-gray-900 font-medium">{{ auth()->user()->email }}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg md:col-span-2">
+                                <div class="p-2 bg-purple-100 rounded-lg">
+                                    <svg class="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Account Created</label>
+                                    <p class="text-gray-900 font-medium">{{ auth()->user()->created_at->format('d M Y, H:i') }}</p>
                                 </div>
                             </div>
                         </div>

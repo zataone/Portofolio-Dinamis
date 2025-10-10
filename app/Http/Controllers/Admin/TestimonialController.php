@@ -23,15 +23,23 @@ class TestimonialController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'brand_name' => 'nullable|string|max:255',
+            'client_name' => 'required|string|max:255',
+            'client_position' => 'required|string|max:255',
             'message' => 'required|string',
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'client_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $data = $request->all();
+        $data = [
+            'client_name' => $request->client_name,
+            'client_position' => $request->client_position,
+            'message' => $request->message,
+        ];
 
-        if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')->store('testimonials/photos', 'public');
+        if ($request->hasFile('client_photo')) {
+            $photo = $request->file('client_photo');
+            $filename = time() . '_' . $photo->getClientOriginalName();
+            $path = $photo->storeAs('testimonials/photos', $filename, 'public');
+            $data['photo'] = $path;
         }
 
         Testimonial::create($data);
@@ -53,18 +61,23 @@ class TestimonialController extends Controller
     public function update(Request $request, Testimonial $testimonial)
     {
         $request->validate([
-            'brand_name' => 'nullable|string|max:255',
+            'client_name' => 'required|string|max:255',
+            'client_position' => 'required|string|max:255',
             'message' => 'required|string',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'client_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $data = $request->all();
+        $data = [
+            'client_name' => $request->client_name,
+            'client_position' => $request->client_position,
+            'message' => $request->message,
+        ];
 
-        if ($request->hasFile('photo')) {
+        if ($request->hasFile('client_photo')) {
             if ($testimonial->photo) {
                 Storage::disk('public')->delete($testimonial->photo);
             }
-            $data['photo'] = $request->file('photo')->store('testimonials/photos', 'public');
+            $data['photo'] = $request->file('client_photo')->store('testimonials/photos', 'public');
         }
 
         $testimonial->update($data);

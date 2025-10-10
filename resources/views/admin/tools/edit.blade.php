@@ -1,14 +1,14 @@
 @extends('layouts.main')
 
-@section('title', 'Create Tool')
+@section('title', 'Edit Tool')
 
 @section('content')
 <div class="space-y-5 sm:space-y-6">
     <!-- Header -->
     <div class="sm:flex sm:items-center sm:justify-between">
         <div>
-            <h1 class="text-xl font-bold text-gray-900">Create Tool</h1>
-            <p class="mt-1 text-sm text-gray-500">Add a new development tool to your portfolio</p>
+            <h1 class="text-xl font-bold text-gray-900">Edit Tool</h1>
+            <p class="mt-1 text-sm text-gray-500">Update your development tool information</p>
         </div>
         <div class="mt-4 sm:mt-0">
             <a href="{{ route('admin.tools.index') }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
@@ -22,13 +22,13 @@
 
     <!-- Form -->
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-    <form action="{{ route('admin.tools.store') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
+        <form action="{{ route('admin.tools.update', $tool) }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
             @csrf
-            
+            @method('PUT')
             <!-- Tool Name -->
             <div class="mb-6">
                 <label for="name" class="block text-sm font-semibold text-gray-900 mb-1">Tool Name *</label>
-                <input type="text" name="name" id="name" value="{{ old('name') }}"
+                <input type="text" name="name" id="name" value="{{ old('name', $tool->name) }}"
                     class="block w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 transition-all duration-200 @error('name') border-red-500 ring-red-200 @enderror"
                     placeholder="Enter development tool name">
                 @error('name')
@@ -52,6 +52,11 @@
                     </svg>
                     Upload a logo for the tool (optional, max 2MB)
                 </p>
+                @if($tool->logo)
+                <div class="mt-2">
+                    <img src="{{ asset('storage/' . $tool->logo) }}" alt="{{ $tool->name }}" class="h-12 w-12 rounded object-cover border">
+                </div>
+                @endif
                 @error('logo')
                 <p class="mt-1 text-sm text-red-600 flex items-center">
                     <svg class="w-4 h-4 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -70,7 +75,7 @@
                 </a>
                 <button type="submit"
                         class="inline-flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:scale-105">
-                    Create Tool
+                    Update Tool
                 </button>
             </div>
         </form>

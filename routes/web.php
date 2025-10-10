@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function () {
         Route::get('user-profile', [UserProfileController::class, 'index'])->name('user-profile.index');
         Route::get('user-profile/edit', [UserProfileController::class, 'edit'])->name('user-profile.edit');
         Route::put('user-profile', [UserProfileController::class, 'update'])->name('user-profile.update');
+        Route::put('user-profile/password', [UserProfileController::class, 'updatePassword'])->name('user-profile.update-password');
     });
     
     // Profile Routes

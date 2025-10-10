@@ -14,12 +14,18 @@ class Project extends Model
         'thumbnail',
         'image',
         'description',
-        'short_description'
+        'short_description',
+        'url'
     ];
 
     // Relationship
     public function category()
     {
         return $this->belongsTo(ProjectCategory::class, 'category_id');
+    }
+
+    public function images()
+    {
+        return $this->hasMany(ProjectImage::class);
     }
 }

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('image');
             $table->text('description')->nullable();
             $table->text('short_description');
+            $table->string('url')->nullable(); // Project link (Drive, YouTube, Figma, Website)
             $table->timestamps();
 
             $table->foreign('category_id')->references('id')->on('project_categories')->onDelete('set null');

@@ -15,6 +15,13 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $projectCategoryStats = ProjectCategory::withCount('projects')->get()->map(function($cat) {
+            return [
+                'name' => $cat->name,
+                'count' => $cat->projects_count
+            ];
+        })->values()->toArray();
+
         $data = [
             'total_projects' => Project::count(),
             'total_skills' => Skill::count(),
@@ -24,6 +31,7 @@ class DashboardController extends Controller
             'total_categories' => ProjectCategory::count(),
             'recent_projects' => Project::with('category')->latest()->take(5)->get(),
             'recent_testimonials' => Testimonial::latest()->take(5)->get(),
+            'project_category_stats' => $projectCategoryStats,
         ];
 
         return view('admin.dashboard.index', compact('data'));

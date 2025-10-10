@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectCategory;
+use App\Models\ProjectImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -33,27 +34,40 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
+
         $request->validate([
             'project_name' => 'required|string|max:255',
             'category_id' => 'nullable|exists:project_categories,id',
             'thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'required|array|min:5|max:5', // exactly 5 images required
+            'image.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'description' => 'nullable|string',
             'short_description' => 'required|string',
         ]);
 
-        $data = $request->all();
+    $data = $request->only(['project_name', 'category_id', 'description', 'short_description', 'url']);
+    // ensure image column has a value (nullable migration may not be run yet)
+    $data['image'] = null;
 
-        // Handle file uploads
+        // Handle thumbnail upload
         if ($request->hasFile('thumbnail')) {
             $data['thumbnail'] = $request->file('thumbnail')->store('projects/thumbnails', 'public');
         }
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('projects/images', 'public');
-        }
+        $project = Project::create($data);
 
-        Project::create($data);
+        // Handle exactly 5 main images
+        if ($request->hasFile('image')) {
+            $images = $request->file('image');
+            
+            foreach ($images as $img) {
+                $path = $img->store('projects/images', 'public');
+                ProjectImage::create([
+                    'project_id' => $project->id,
+                    'path' => $path,
+                ]);
+            }
+        }
 
         return redirect()->route('admin.projects.index')
             ->with('success', 'Project created successfully.');
@@ -81,18 +95,19 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project)
     {
+
         $request->validate([
             'project_name' => 'required|string|max:255',
             'category_id' => 'nullable|exists:project_categories,id',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'description' => 'nullable|string',
             'short_description' => 'required|string',
         ]);
 
-        $data = $request->all();
+        $data = $request->only(['project_name', 'category_id', 'description', 'short_description', 'url']);
 
-        // Handle file uploads
+        // Handle thumbnail upload
         if ($request->hasFile('thumbnail')) {
             // Delete old thumbnail
             if ($project->thumbnail) {
@@ -101,15 +116,39 @@ class ProjectController extends Controller
             $data['thumbnail'] = $request->file('thumbnail')->store('projects/thumbnails', 'public');
         }
 
-        if ($request->hasFile('image')) {
-            // Delete old image
-            if ($project->image) {
-                Storage::disk('public')->delete($project->image);
+        $project->update($data);
+
+        // Handle removal of images first (checkboxes)
+        $removedCount = 0;
+        if ($request->filled('remove_images')) {
+            $toRemove = $request->input('remove_images', []);
+            foreach ($toRemove as $imgId) {
+                $img = ProjectImage::find($imgId);
+                if ($img && $img->project_id == $project->id) {
+                    Storage::disk('public')->delete($img->path);
+                    $img->delete();
+                    $removedCount++;
+                }
             }
-            $data['image'] = $request->file('image')->store('projects/images', 'public');
         }
 
-        $project->update($data);
+        // Handle new main images (enforce max 5 total after removal)
+        if ($request->hasFile('image')) {
+            $currentCount = $project->images()->count(); // count after removal
+            $newImages = $request->file('image');
+            
+            if ($currentCount + count($newImages) > 5) {
+                return redirect()->back()->withErrors(['image' => 'Total images cannot exceed 5. You currently have ' . $currentCount . ' images.'])->withInput();
+            }
+            
+            foreach ($newImages as $img) {
+                $path = $img->store('projects/images', 'public');
+                ProjectImage::create([
+                    'project_id' => $project->id,
+                    'path' => $path,
+                ]);
+            }
+        }
 
         return redirect()->route('admin.projects.index')
             ->with('success', 'Project updated successfully.');
@@ -120,12 +159,15 @@ class ProjectController extends Controller
      */
     public function destroy(Project $project)
     {
-        // Delete files
+        // Delete thumbnail
         if ($project->thumbnail) {
             Storage::disk('public')->delete($project->thumbnail);
         }
-        if ($project->image) {
-            Storage::disk('public')->delete($project->image);
+
+        // Delete related images
+        foreach ($project->images as $img) {
+            Storage::disk('public')->delete($img->path);
+            $img->delete();
         }
 
         $project->delete();
