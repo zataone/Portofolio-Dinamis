@@ -6,6 +6,14 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\SkillController;
+use App\Http\Controllers\Admin\ToolController;
+use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\TestimonialController;
+use App\Http\Controllers\Admin\ProjectCategoryController;
+use App\Http\Controllers\Admin\UserProfileController;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
@@ -36,9 +44,22 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     
     // Dashboard Route
-    Route::get('dashboard', function () {
-        return view('admin.dashboard.index');
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Admin Routes
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::resource('projects', ProjectController::class);
+        Route::resource('skills', SkillController::class);
+        Route::resource('tools', ToolController::class);
+        Route::resource('brands', BrandController::class);
+        Route::resource('testimonials', TestimonialController::class);
+        Route::resource('project-categories', ProjectCategoryController::class);
+        
+        // User Profile (read and update only)
+        Route::get('user-profile', [UserProfileController::class, 'index'])->name('user-profile.index');
+        Route::get('user-profile/edit', [UserProfileController::class, 'edit'])->name('user-profile.edit');
+        Route::put('user-profile', [UserProfileController::class, 'update'])->name('user-profile.update');
+    });
     
     // Profile Routes
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');

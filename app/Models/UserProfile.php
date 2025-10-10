@@ -9,6 +9,7 @@ class UserProfile extends Model
     protected $table = 'user_profiles';
 
     protected $fillable = [
+        'user_id',
         'full_name',
         'photo',
         'bio',
@@ -18,4 +19,12 @@ class UserProfile extends Model
         'gitlab',
         'email'
     ];
+
+    /**
+     * Get the user that owns the profile.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
